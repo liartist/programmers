@@ -1,0 +1,130 @@
+# 210319 tistory 데이터 이관
+
+https://leetcode.com/problems/two-sum/
+
+
+Two Sum - LeetCode
+
+Level up your coding skills and quickly land a job. This is the best place to expand your knowledge and get prepared for your next interview.
+
+leetcode.com
+난이도: Easy
+
+
+
+Given an array of integers, return indices of the two numbers such that they add up to a specific target.
+
+You may assume that each input would have exactly one solution, and you may not use the same element twice.
+
+
+
+속도에 대한 궁리를 하여 처음 떠오른 것은 target보다 큰 수를 제외하는 방식.
+
+그러나 input 값에 대한 제한 조건(양수 등)이 없어서 음수도 가능하기 때문에 이 방식은 사용할 수 없었다.
+
+따라서 그냥 bruteforce 방식으로 접근하여 일단 문제를 해결했다.
+
+
+
+Java를 공부하는 중이라 Java 코드로 작성했는데, 반환 값을 어떻게 처리하는지 몰라 처음에는 변수 선언을 먼저 하고 해당 변수에 값을 넣어 반환했다.
+
+solution을 보니 new int[]를 활용하여 공간을 만들어주었다.
+
+class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        for (int i = 0; i < nums.length; i++) {
+            for (int j = i + 1; j < nums.length; j++) {
+                if (nums[i] + nums[j] == target) {
+                    return new int[] {i, j};
+                }
+            }
+        }
+        return null;
+    }
+}
+
+
+hint 2를 보니, 배열을 조작하는 방법에 대해 언급했다.
+
+
+
+이 때 떠오른 것은 입력 배열을 크기 순서로 정렬한 뒤 큰 값에서부터 탐색하는 방법인데, 각 정렬 및 검색에 대한 정확한 시간복잡도에 대한 개념이 확실히 잡혀있지 않아 일단은 보류했다.
+
+
+
+hint 3는 hash map에 대해서 언급했다.
+
+
+
+hash에 대해서는 대략적으로만 알고있었는데, solution을 보면서 실제로 어떻게 활용할지에 대해 공부하겠다.
+
+
+
+
+
+approach 2: two-pass hash table
+
+
+
+hash table을 사용하면 시간복잡도를 O(n)에서 O(1)로 줄일 수 있다고 한다.
+
+충돌이 발생할 경우 O(n)까지 시간이 늘어날 수 있지만, 일단 최초의 시간복잡도가 O(n)이기 때문에 손해는 없을 것이고, hash 함수를 잘 선택하면 amortized cost가 O(1)이라고 한다.
+
+amortized cost는 알고리즘 조교를 하며 들어보기만 했는데 다음에 기회가 있다면 더 자세히 다루겠다.
+
+
+
+여튼 이게 잘 이해가 안됐던건 hash의 key를 탐색할 때 리니어로 하지 않을까? 하고 막연하게 생각했던 터라 어차피 linear search와 O(n)으로 같지 않으려나... 했던건데, 언어별로 각자 내부적으로 트리구조든 뭐든 구현이 잘 되어있어서 '최악의 경우' O(n)인거고, 일반적으로는 더 빠르다고 한다.
+
+따라서 그냥 잘 구현되어있는 자료구조를 사용하는게 좋을 듯 싶다.
+
+
+
+여튼 따라서 단순 구현하는 hash table에 대해 생각해보면, 일단 배열의 모든 값을 key, 각각의 index를 value로 하여 hash table을 만든다.
+
+Java에서는 Map을 사용하여 구현할 수 있다.
+
+Map<Integer, Integer> map = new HashMap<>();
+
+for (int i = 0; i < nums.length; i++) {
+	map.put(nums[i], i);		// key: nums[i], value: i
+}
+
+
+그리고 배열을 순회하며 각 값에 대해 합이 target인 값을 hast table에서 검색한다.
+
+for (int i = 0; i < nums.length; i++) {
+	int complement = target - nums[i];
+    
+    if (map.containsKey(complement)) {
+    	if (map.get(complement) != i) {
+        	return new int[] {i, map.get(complement)};
+        }
+    }
+}
+
+
+결과는 O(n) * O(1)로 O(n)이 된다.
+
+
+
+
+
+approach 3: one-pass hash table
+
+
+
+이건 별건 아니고, hash map에 값을 집어넣으면서 그와 동시에 그 안에서 답을 찾아내는 방식이다.
+
+approach 2와 같은 시간 복잡도를 갖지만, 그보다는 빠른 시간을 보장한다.
+
+Map<Integer, Integer> map = new HashMap<>();
+
+for (int i = 0; i < nums.length; i++) {
+    int complement = target - nums[i];
+    
+    if (map.constainsKey(complement)) {			// no need for checking whether i is in map
+    	return new int[] {map.get(complement), i};	// ascending order) complement, i
+    }
+    map.put(nums[i], i);
+}
